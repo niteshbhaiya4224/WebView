@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>WebTorrent Download</title>
+    <script src="https://cdn.jsdelivr.net/npm/webtorrent@latest/webtorrent.min.js"></script>
+  </head>
+  <body>
+    <div id="download-details">
+      <p>Progress: <span id="progress">0%</span></p>
+      <p>Speed: <span id="speed">0 KB/s</span></p>
+      <p>Downloaded: <span id="downloaded">0 MB</span></p>
+      <p>Total: <span id="total">0 MB</span></p>
+    </div>
+    <script>
+      const client = new WebTorrent();
+
+      window.addEventListener('message', event => {
+        const data = JSON.parse(event.data);
+        if (data.magnet) {
+          client.add(data.magnet, torrent => {
+            torrent.on('download', bytes => {
+              document.getElementById('progress').textContent =
+                (torrent.progress * 100).toFixed(2) + '%';
+              document.getElementById('speed').textContent =
+                (torrent.downloadSpeed / 1024).toFixed(2) + ' KB/s';
+              document.getElementById('downloaded').textContent =
+                (torrent.downloaded / (1024 * 1024)).toFixed(2) + ' MB';
+              document.getElementById('total').textContent =
+                (torrent.length / (1024 * 1024)).toFixed(2) + ' MB';
+            });
+            torrent.on('done', () => {
+              console.log('Download completed');
+            });
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
